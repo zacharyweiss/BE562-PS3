@@ -2,6 +2,7 @@ import numpy as np
 import argparse
 
 parser = argparse.ArgumentParser()
+parser.add_argument('seq_len', type=int)
 parser.add_argument('iter', metavar='simulation_iterations', type=int)
 args = parser.parse_args()
 
@@ -21,7 +22,7 @@ bases = ["A", "G", "C", "T"]
 
 # generate a sequence given a transition matrix of probabilities
 def gen_seq(trans_prob, seq_len):
-    # initialize & prealloc sequence of given length with placeholder "Z"
+    # initialize & prealloc. sequence of given length with placeholder "Z"
     s = ["Z"]*seq_len
     # initialize first nucleotide (even probability of being any base)
     s[0] = bases[np.where(np.random.multinomial(1, [0.25, 0.25, 0.25, 0.25]))[0][0]]
@@ -54,7 +55,7 @@ def simulated_ownership(m_gen, m_false):
     count = 0
     for i in range(args.iter):
         # generate a new sequence
-        seq = gen_seq(m_gen, 15)
+        seq = gen_seq(m_gen, args.seq_len)
 
         # if it's more likely the wrong matrix produced the sequence, increase count
         if seq_prob(seq, m_false) > seq_prob(seq, m_gen):
