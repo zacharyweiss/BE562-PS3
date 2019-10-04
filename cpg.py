@@ -21,7 +21,7 @@ bases = ["A", "G", "C", "T"]
 
 # generate a sequence given a transition matrix of probabilities
 def gen_seq(trans_prob, seq_len):
-    # initialize sequence of given length with placeholder "Z"
+    # initialize & prealloc sequence of given length with placeholder "Z"
     s = ["Z"]*seq_len
     # initialize first nucleotide (even probability of being any base)
     s[0] = bases[np.where(np.random.multinomial(1, [0.25, 0.25, 0.25, 0.25]))[0][0]]
@@ -40,6 +40,7 @@ def gen_seq(trans_prob, seq_len):
 def seq_prob(seq, trans_prob):
     generated_prob = 0.25  # likelihood of first base is even
 
+    # expand P(x0,x1,x2...xn) to P(x0)*P(x1)*P(x2)...P(xn) due to Markov property
     for i in range(len(seq)-1):
         generated_prob *= trans_prob[bases.index(seq[i])][bases.index(seq[i+1])]
 
@@ -52,7 +53,10 @@ def simulated_ownership(m_gen, m_false):
     # second arg is matrix to compare against
     count = 0
     for i in range(args.iter):
+        # generate a new sequence
         seq = gen_seq(m_gen, 15)
+
+        # if it's more likely the wrong matrix produced the sequence, increase count
         if seq_prob(seq, m_false) > seq_prob(seq, m_gen):
             count += 1
 
