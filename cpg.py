@@ -22,8 +22,8 @@ bases = ["A", "G", "C", "T"]
 
 # generate a sequence given a transition matrix of probabilities
 def gen_seq(trans_prob, seq_len):
-    # initialize & prealloc. sequence of given length with placeholder "Z"
-    s = ["Z"]*seq_len
+    # initialize & prealloc. sequence of given length
+    s = [None]*seq_len
     # initialize first nucleotide (even probability of being any base)
     s[0] = bases[np.where(np.random.multinomial(1, [0.25, 0.25, 0.25, 0.25]))[0][0]]
 
