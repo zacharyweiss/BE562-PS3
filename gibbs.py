@@ -5,8 +5,7 @@ Guide
 """
 import sys
 #### Any additional imports
-# optional - import any libraries you need
-#   (but don't use a library that implements Gibb's sampling for you!)
+import numpy as np
 
 #### End additional imports
 
@@ -28,18 +27,62 @@ alphabet = ['A', 'G', 'C', 'T']
 ####  OUTPUT: PFM - 4xL list with frequencies of each base at each position
 ####                Order of bases should be consistent with alphabet variable
 def GibbsSampler(S, L):
-    PFM = [ [0.0] * L for i in range(len(alphabet)) ]
+    PFM = [[0.0] * L for i in range(len(alphabet))]
 
     ######### ADD YOUR CODE HERE ######
+    score = 0
+    score_new = 0
+    score_thresh = 0.05
+    itera = 0
+    itera_thresh = 1000
+    # max_score = L*len(S)
+
+    # choose a substring of length L from each S1,...St #
+    substrings = [None] * len(S)
+    for i, S_i in enumerate(S):
+        ind = np.random.randint(0, len(S_i) - L)
+        substrings[i] = S_i[ind:ind + L]
+    subs_len = len(substrings)
+
+    # initialize PFM #
+    for i in range(L):
+        for s in substrings:
+            PFM[alphabet.index(s[i])][i] += 1 / (subs_len * L)
+
+    # while not converged do #
+    converged = False
+    while not converged:
+        subs_old = substrings
+
+        # choose a sequence at random, Sc #
+        Sc = choose_sc()
+
+        # score all substrings of length L from Sc using the PFM #
+        # stochastically choose a new substring from Sc with a probability proportional to its score #
+
+
+
+        itera += 1
+        if (abs(score - score_new) < score_thresh) or (itera > itera_thresh):
+            converged = True
+        score = score_new
 
     ######### END OF YOUR CODE HERE #####
-
-    return PFM
+    # return chosen substrings, PFM #
+    return substrings, PFM
 
 
 ###### YOUR OWN FUNCTIONS HERE
-# optional -- feel free to add any helper functions to make your code
-#             more manageable
+def choose_sc():
+    Sc = 0
+    return Sc
+
+def choose_subs(subs_old, subs):
+
+
+def score_subs(subs_old, subs):
+    score = 0
+    return score
 
 ###### END OF YOUR FUNCTIONS
 
@@ -66,11 +109,12 @@ def main():
 
     # Prints the PFM in a pretty format, with one row for each base and each
     # column is the probability distribution for that position in the motif
-    print("    " + " ".join(["{:<5d}".format(i) for i in list(range(1, L+1))]))
+    print("    " + " ".join(["{:<5d}".format(i) for i in list(range(1, L + 1))]))
 
-    for j in xrange(len(alphabet)):
+    for j in range(len(alphabet)):
         print(" {0}  ".format(alphabet[j]) +
               " ".join(["{:5.3f}".format(p) for p in P[j]]))
+
 
 if __name__ == "__main__":
     main()
