@@ -1,92 +1,93 @@
-#!/usr/bin/env python
-"""Skeleton code for Gibb's sampling
-
-Guide
+"""
+Zachary Weiss
+9 Oct 2019
+Gibb's Sampling for BE562
 """
 import sys
-#### Any additional imports
 import numpy as np
-
-#### End additional imports
-
-try:
-    xrange
-except NameError:
-    xrange = range  # support both Python 2 and 3
-
-#### INSTRUCTIONS FOR USE:
-# call program as follows: ./gibbs.py <Motif Length> <Data File>
-# make sure the gibbs.py is marked as executable: chmod +x gibbs.py
 
 alphabet = ['A', 'G', 'C', 'T']
 
 
-#### GibbsSampler:
-####  INPUTS: S - list of sequences
-####          L - length of motif
-####  OUTPUT: PFM - 4xL list with frequencies of each base at each position
-####                Order of bases should be consistent with alphabet variable
-def GibbsSampler(S, L):
-    PFM = [[0.0] * L for i in range(len(alphabet))]
-
-    ######### ADD YOUR CODE HERE ######
-    score = 0
-    score_new = 0
-    score_thresh = 0.05
-    itera = 0
-    itera_thresh = 1000
-    # max_score = L*len(S)
+#  S - list of sequences
+#  L - length of motif
+#  PFM - 4xL list with frequencies of each base at each position
+def gibbs_sampler(S, L):
+    # number of strings
+    s_n = len(S)
 
     # choose a substring of length L from each S1,...St #
-    substrings = [None] * len(S)
+    substrings = [None] * s_n
     for i, S_i in enumerate(S):
         ind = np.random.randint(0, len(S_i) - L)
         substrings[i] = S_i[ind:ind + L]
-    subs_len = len(substrings)
 
     # initialize PFM #
+    PFM = [[0.0] * L for i in range(len(alphabet))]
     for i in range(L):
         for s in substrings:
-            PFM[alphabet.index(s[i])][i] += 1 / (subs_len * L)
+            PFM[alphabet.index(s[i])][i] += 1 / s_n
 
     # while not converged do #
+    itera = 0
+    itera_thresh = 10000
     converged = False
+    Sc_i = -1  # placeholder index of current sequence
     while not converged:
-        subs_old = substrings
-
         # choose a sequence at random, Sc #
-        Sc = choose_sc()
+        ind = np.random.randint(0, s_n)
+        while ind == Sc_i:
+            ind = np.random.randint(0, s_n)
+        Sc_i = ind
+        Sc = S[Sc_i]
 
         # score all substrings of length L from Sc using the PFM #
+        score = [1] * (len(Sc) - L)
+        # score = [0] * (len(Sc) - L)
+        for i in range(len(Sc) - L):
+            for j in range(L):
+                score[i] *= PFM[alphabet.index(Sc[i + j])][j]
+                # score[i] += np.log(PFM[alphabet.index(Sc[i + j])][j] + 1)
+
         # stochastically choose a new substring from Sc with a probability proportional to its score #
+        denom = sum(score)
+        subs_prob = [a/denom for a in score]
+        Sc_sub_ind = np.argmax(np.random.multinomial(1, subs_prob))
+        substrings[Sc_i] = S[Sc_i][Sc_sub_ind:Sc_sub_ind+L]
+
+        # update PFM
+        PFM = [[0.0] * L for i in range(len(alphabet))]
+        for i in range(L):
+            for s in substrings:
+                PFM[alphabet.index(s[i])][i] += 1 / s_n
 
 
+        max_prob = [np.max(a) for a in np.array(PFM).T.tolist()]
+        avg_max_prob = np.average(max_prob)
+        if not (itera % 50):
+            print("{:5.3f} {:5.3f} {:5.3f}".format(avg_max_prob, max(max_prob), min(max_prob)))
 
         itera += 1
-        if (abs(score - score_new) < score_thresh) or (itera > itera_thresh):
+        if (avg_max_prob > 0.85) or (itera > itera_thresh):
             converged = True
-        score = score_new
+            print("Iter@converge: " + str(itera))
+            print("{:5.3f} {:5.3f} {:5.3f}".format(avg_max_prob, max(max_prob), min(max_prob)))
 
-    ######### END OF YOUR CODE HERE #####
+    print_motif(PFM, L)
     # return chosen substrings, PFM #
     return substrings, PFM
 
 
-###### YOUR OWN FUNCTIONS HERE
-def choose_sc():
-    Sc = 0
-    return Sc
+def print_motif(PFM, L):
+    motif = [None] * L
+    for i in range(L):
+        max_ind = np.argmax([a[i] for a in PFM])
+        motif[i] = alphabet[max_ind] if PFM[max_ind][i] > 0.7 else "_"
+    motif = ''.join(motif)
+    print(motif)
 
-def choose_subs(subs_old, subs):
 
-
-def score_subs(subs_old, subs):
-    score = 0
-    return score
-
-###### END OF YOUR FUNCTIONS
-
-def readdata(file):
+def read_data(file):
     data = []
     with open(file, "r") as f:
         for line in f:
@@ -103,9 +104,9 @@ def main():
 
     L = int(sys.argv[1])
     datafile = sys.argv[2]
-    S = readdata(datafile)
+    S = read_data(datafile)
 
-    P = GibbsSampler(S, L)
+    substrings, P = gibbs_sampler(S, L)
 
     # Prints the PFM in a pretty format, with one row for each base and each
     # column is the probability distribution for that position in the motif
