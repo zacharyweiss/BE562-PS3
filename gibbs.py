@@ -1,6 +1,6 @@
 """
 Zachary Weiss
-9 Oct 2019
+13 Oct 2019
 Gibb's Sampling for BE562
 """
 import sys
@@ -9,6 +9,7 @@ import numpy as np
 alphabet = ['A', 'G', 'C', 'T']
 max_thresh = 0.85
 itera_thresh = 200
+
 
 #  S - list of sequences
 #  L - length of motif
@@ -64,7 +65,6 @@ def gibbs_sampler(S, L):
                 for s in substrings:
                     PFM[alphabet.index(s[i])][i] += 1 / s_n
 
-
             max_prob = [np.max(a) for a in np.array(PFM).T.tolist()]
             avg_max_prob = np.average(max_prob)
             if not (itera % 10):
@@ -73,9 +73,9 @@ def gibbs_sampler(S, L):
             itera += 1
             if avg_max_prob > max_thresh:
                 converged = True
-                print("{:5.3f} {:5.3f} {:5.3f}".format(avg_max_prob, max(max_prob), min(max_prob)))
+                print("\n{:5.3f} {:5.3f} {:5.3f}".format(avg_max_prob, max(max_prob), min(max_prob)))
                 print("Inits@converge: " + str(inits))
-                print("Iter@converge: " + str(itera))
+                print("Iter@converge: " + str(itera) + "\n")
 
 
     # return chosen substrings, PFM #
@@ -88,10 +88,18 @@ def print_motif(PFM, subs, L):
         max_ind = np.argmax([a[i] for a in PFM])
         motif[i] = alphabet[max_ind] if PFM[max_ind][i] >= 0.7 else "_"
     motif = ''.join(motif)
+
     print("Motif: " + motif)
     for s in subs:
         print(s)
-    print("\n")
+
+    # Prints the PFM in a pretty format, with one row for each base and each
+    # column is the probability distribution for that position in the motif
+    print("\n    " + " ".join(["{:<5d}".format(i) for i in list(range(1, L + 1))]))
+    for j in range(len(alphabet)):
+        print(" {0}  ".format(alphabet[j]) +
+              " ".join(["{:5.3f}".format(p) for p in PFM[j]]))
+
 
 def read_data(file):
     data = []
@@ -115,13 +123,6 @@ def main():
     substrings, P = gibbs_sampler(S, L)
 
     print_motif(P, substrings, L)
-
-    # Prints the PFM in a pretty format, with one row for each base and each
-    # column is the probability distribution for that position in the motif
-    print("    " + " ".join(["{:<5d}".format(i) for i in list(range(1, L + 1))]))
-    for j in range(len(alphabet)):
-        print(" {0}  ".format(alphabet[j]) +
-              " ".join(["{:5.3f}".format(p) for p in P[j]]))
 
 
 if __name__ == "__main__":
