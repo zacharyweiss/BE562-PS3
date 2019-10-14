@@ -19,10 +19,10 @@ a = [[0.5, 0.4, 0.1],  # j = 0
 X = "NAGO"
 
 # initialize forward matrix with start conditions
-V = [[None] * len(X)] * len(e[0])
-V[0][0] = 1
-for i in range(1, len(V)):
-    V[i][0] = 0
+V = np.zeros((len(e[0]), len(X))).tolist()
+V[0][0] = 1.0
+# for i in range(1, len(V)):
+#     V[i][0] = 0.0
 
 # fill out forward matrix recursively
 for i in range(1, len(X)):
@@ -30,5 +30,5 @@ for i in range(1, len(X)):
         summable = [(a[j][k] * V[j][i-1]) for j in range(k+1)]
         V[k][i] = e[i][k] * np.sum(summable)
 
-prob = np.sum([V[i][len(V[0])] for i in range(len(V))])
+prob = np.sum([V[i][len(V[0])-1] for i in range(len(V))])
 print(prob)
