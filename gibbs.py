@@ -7,7 +7,7 @@ import sys
 import numpy as np
 
 alphabet = ['A', 'G', 'C', 'T']
-max_thresh = 0.85
+max_thresh = 0.78
 itera_thresh = 200
 
 
