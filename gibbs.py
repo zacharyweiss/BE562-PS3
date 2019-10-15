@@ -8,7 +8,7 @@ import numpy as np
 
 alphabet = ['A', 'G', 'C', 'T']
 max_thresh = 0.78
-itera_thresh = 200
+itera_thresh = 750
 
 
 #  S - list of sequences
